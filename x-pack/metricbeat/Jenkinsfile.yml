@@ -82,3 +82,8 @@ stages:
     packaging-linux:
         packaging-linux: "mage package"
         isE2E: false
+    packaging-arm:
+        packaging-arm: "mage package"
+        isE2E: false
+        platforms:
+          - "arm"

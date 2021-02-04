@@ -260,7 +260,19 @@ def k8sTest(Map args = [:]) {
 }
 
 /**
-* This method runs the packaging
+* This method runs the packaging in arm
+*/
+def packagingArm(Map args = [:]) {
+  def PLATFORMS = [ 'linux/arm64' ].join(' ')
+  withEnv([
+    "PLATFORMS=${PLATFORMS}"
+  ]) {
+    target(args)
+  }
+}
+
+/**
+* This method runs the packaging in linux
 */
 def packagingLinux(Map args = [:]) {
   def PLATFORMS = [ '+all',
@@ -776,7 +788,12 @@ class RunCommand extends co.elastic.beats.BeatsFunction {
     }*/
     if(args?.content?.containsKey('packaging-linux')) {
       steps.packagingLinux(context: args.context, command: args.content.packaging-linux, directory: args.project, label: args.label, isMage: true, id: args.id, isE2E: isE2E)
-    }/*
+    }
+    // packaging for ARM to be implemented in https://github.com/elastic/beats/pull/23592
+    //if(args?.content?.containsKey('packaging-arm')) {
+    //  steps.packagingLinux(context: args.context, command: args.content.packaging-arm, directory: args.project, label: args.label, isMage: true, id: args.id, isE2E: isE2E)
+    //}
+    /*
     if(args?.content?.containsKey('k8sTest')) {
       steps.k8sTest(context: args.context, versions: args.content.k8sTest.split(','), label: args.label, id: args.id)
     }
