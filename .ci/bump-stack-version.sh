@@ -34,7 +34,6 @@ for FILE in ${FILES} ; do
 done
 
 echo "Commit changes"
-git config user.email
 if [ "$CREATE_BRANCH" = "true" ]; then
 	git checkout -b "update-stack-version-$(date "+%Y%m%d%H%M%S")"
 else
