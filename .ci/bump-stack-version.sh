@@ -24,6 +24,12 @@ else
 	SED="sed -i"
 fi
 
+if [ "$CREATE_BRANCH" = "true" ]; then
+	git checkout -b "update-stack-version-$(date "+%Y%m%d%H%M%S")"
+else
+	echo "Branch creation disabled."
+fi
+
 FILES="testing/environments/snapshot-oss.yml
 testing/environments/snapshot.yml
 "
@@ -34,11 +40,6 @@ for FILE in ${FILES} ; do
 done
 
 echo "Commit changes"
-if [ "$CREATE_BRANCH" = "true" ]; then
-	git checkout -b "update-stack-version-$(date "+%Y%m%d%H%M%S")"
-else
-	echo "Branch creation disabled."
-fi
 for FILE in ${FILES} ; do
 	echo "git add $FILE"
 done
