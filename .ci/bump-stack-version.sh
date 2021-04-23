@@ -41,7 +41,7 @@ done
 
 echo "Commit changes"
 for FILE in ${FILES} ; do
-	echo "git add $FILE"
+	git add $FILE
 done
 git commit -m "bump stack version ${VERSION}"
 git --no-pager log -1
