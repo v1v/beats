@@ -564,7 +564,7 @@ def target(Map args = [:]) {
         // Packaging should happen only after the e2e?
         if (isPackaging) {
           cmd(label: "debug - ${command}", script: "${command}")
-          def pattern = "${directory}/build/distributions"
+          def pattern = "${beatsFolder}/build/distributions"
           sh(label: 'debug content', script: "find ${pattern} || true")
           publishPackages("${directory}")
         }
