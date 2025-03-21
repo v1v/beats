@@ -68,7 +68,7 @@ jobs:
 
     - name: Upload Colima stderr log
       if: failure()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: colima-ha-stderr-log
         path: /Users/runner/.colima/_lima/colima/ha.stderr.log
