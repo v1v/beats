@@ -12,9 +12,18 @@ on:
 permissions:
   contents: read
 
+# to configure for PRs then cancel them
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # TODO: gather what beats has changed and run them only
+
   build-test:
     strategy:
+      fail-fast: false
+      max-parallel: 10
       matrix:
         beat: [
           auditbeat,
@@ -22,9 +31,10 @@ jobs:
           heartbeat,
           metricbeat,
           packetbeat,
+          x-pack/agentbeat,
           x-pack/auditbeat,
+          x-pack/dockerlogbeat,
           x-pack/filebeat,
-          x-pack/functionbeat,
           x-pack/heartbeat,
           x-pack/metricbeat,
           x-pack/osquerybeat,
@@ -44,7 +54,15 @@ jobs:
         cache: "pip"
         python-version-file: .python-version
 
-    - name: Run build and unitTest
-      run: |
-        go install github.com/magefile/mage
-        cd ${{ matrix.beat }} && mage build unitTest
+    - name: Install mage
+      run: go install github.com/magefile/mage
+
+    - name: Run build
+      run: mage build
+      working-directory: ${{ matrix.beat }}
+
+    - name: Run unitTest
+      run: mage unitTest
+      working-directory: ${{ matrix.beat }}
+
+  # TODO: centralise github job with the status.
