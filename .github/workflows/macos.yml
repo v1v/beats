@@ -1,0 +1,50 @@
+name: macos
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 7.1*
+      - 8.*
+      - 9.*
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    strategy:
+      matrix:
+        beat: [
+          auditbeat,
+          filebeat,
+          heartbeat,
+          metricbeat,
+          packetbeat,
+          xpack/auditbeat,
+          xpack/filebeat,
+          xpack/functionbeat,
+          xpack/heartbeat,
+          xpack/metricbeat,
+          xpack/osquerybeat,
+          xpack/packetbeat
+        ]
+        os: [macos-15, macos-14, macos-13]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: .go-version
+
+    - uses: actions/setup-python@v5
+      with:
+        cache: "pip"
+        python-version-file: .python-version
+
+    - name: Run build and unitTest
+      run: |
+        go install github.com/magefile/mage
+        cd ${{ matrix.beat }} && mage build unitTest
