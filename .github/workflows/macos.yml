@@ -22,13 +22,13 @@ jobs:
           heartbeat,
           metricbeat,
           packetbeat,
-          xpack/auditbeat,
-          xpack/filebeat,
-          xpack/functionbeat,
-          xpack/heartbeat,
-          xpack/metricbeat,
-          xpack/osquerybeat,
-          xpack/packetbeat
+          x-pack/auditbeat,
+          x-pack/filebeat,
+          x-pack/functionbeat,
+          x-pack/heartbeat,
+          x-pack/metricbeat,
+          x-pack/osquerybeat,
+          x-pack/packetbeat
         ]
         os: [macos-15, macos-14, macos-13]
     runs-on: ${{ matrix.os }}
