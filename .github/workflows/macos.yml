@@ -1,0 +1,122 @@
+name: macos
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 7.1*
+      - 8.*
+      - 9.*
+
+permissions:
+  contents: read
+
+# to configure for PRs then cancel them
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # TODO: gather what beats has changed and run them only
+
+  # See https://github.com/elastic/beats/issues/43006
+  integ-test:
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        beat: [
+          agentbeat,
+          filebeat
+          #heartbeat,
+          #libbeat,
+          #metricbeat,
+          #x-pack/filebeat,
+          #x-pack/heartbeat,
+          #x-pack/metricbeat
+        ]
+        os: [macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: .go-version
+
+    - name: Install mage
+      run: go install github.com/magefile/mage
+
+    # See https://github.com/actions/runner/issues/1456
+    - name: Setup docker
+      run: |
+        brew install docker docker-compose
+        # Link the Docker Compose v2 plugin so it's understood by the docker CLI
+        mkdir -p ~/.docker/cli-plugins
+        ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+
+    - name: Setup colima
+      run: |
+        brew install colima
+        echo "⚠️ Use mount-type 9p so that launched containers can chown: https://github.com/abiosoft/colima/issues/54#issuecomment-1250217077"
+        colima start --mount-type 9p
+
+    - name: Run GoIntegTest
+      run: mage GoIntegTest
+      working-directory: ${{ matrix.beat }}
+
+    - name: Upload Colima stderr log
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: colima-ha-stderr-log
+        path: /Users/runner/.colima/_lima/colima/ha.stderr.log
+
+  build-test:
+    if: false
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        beat: [
+          auditbeat,
+          filebeat,
+          heartbeat,
+          metricbeat,
+          packetbeat,
+          x-pack/agentbeat,
+          x-pack/auditbeat,
+          x-pack/dockerlogbeat,
+          x-pack/filebeat,
+          x-pack/heartbeat,
+          x-pack/metricbeat,
+          x-pack/osquerybeat,
+          x-pack/packetbeat
+        ]
+        os: [macos-15, macos-14, macos-13]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: .go-version
+
+    - uses: actions/setup-python@v5
+      with:
+        cache: "pip"
+        python-version-file: .python-version
+
+    - name: Install mage
+      run: go install github.com/magefile/mage
+
+    - name: Run build
+      run: mage build
+      working-directory: ${{ matrix.beat }}
+
+    - name: Run unitTest
+      run: mage unitTest
+      working-directory: ${{ matrix.beat }}
+
+  # TODO: centralise github job with the status.
