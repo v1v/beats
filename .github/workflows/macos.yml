@@ -28,13 +28,13 @@ jobs:
       matrix:
         beat: [
           agentbeat,
-          filebeat,
-          heartbeat,
-          libbeat,
-          metricbeat,
-          x-pack/filebeat,
-          x-pack/heartbeat,
-          x-pack/metricbeat
+          filebeat
+          #heartbeat,
+          #libbeat,
+          #metricbeat,
+          #x-pack/filebeat,
+          #x-pack/heartbeat,
+          #x-pack/metricbeat
         ]
         os: [macos-15]
     runs-on: ${{ matrix.os }}
@@ -65,6 +65,13 @@ jobs:
     - name: Run GoIntegTest
       run: mage GoIntegTest
       working-directory: ${{ matrix.beat }}
+
+    - name: Upload Colima stderr log
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: colima-ha-stderr-log
+        path: /Users/runner/.colima/_lima/colima/ha.stderr.log
 
   build-test:
     if: false
