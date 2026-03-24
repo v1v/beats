@@ -84,6 +84,12 @@ func UpdateDocs(newVersion string) error {
 				replacement: fmt.Sprintf("docker.elastic.co/beats/filebeat:%s", newVersion),
 			},
 		},
+		"deploy/kubernetes/heartbeat-kubernetes.yaml": {
+			{
+				pattern:     regexp.MustCompile(`docker\.elastic\.co/beats/heartbeat:\d+\.\d+\.\d+`),
+				replacement: fmt.Sprintf("docker.elastic.co/beats/heartbeat:%s", newVersion),
+			},
+		},
 		"deploy/kubernetes/auditbeat-kubernetes.yaml": {
 			{
 				pattern:     regexp.MustCompile(`docker\.elastic\.co/beats/auditbeat:\d+\.\d+\.\d+`),

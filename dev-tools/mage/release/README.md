@@ -29,7 +29,7 @@ This package provides release automation for the Beats project, migrated from Ma
 
 **Workflows supported:**
 1. **Major/Minor Release** - Creates 1 PR with all updates
-2. **Patch Release** - Creates 2 PRs (docs+version, test-env)
+2. **Patch Release** - Creates 3 PRs (version, docs, test-env)
 3. **Changelog** - Generates changelog and creates 1 PR
 
 ## Prerequisites
@@ -216,15 +216,17 @@ Creates a patch release (e.g., 9.2.1) on an existing release branch.
 
 **What it does:**
 1. Validates version
-2. Creates 2 branches:
-   - `update-docs-version-X.Y.Z` - for docs and version
+2. Creates 3 branches:
+   - `update-version-X.Y.Z` - for version update
+   - `update-docs-X.Y.Z` - for docs updates
    - `update-testing-env-X.Y.Z` - for test environment
 3. Makes updates on each branch
 4. Commits changes on each branch
-5. Pushes both branches (unless DRY_RUN)
-6. Creates 2 PRs (unless DRY_RUN):
-   - PR #1: Docs and version updates
-   - PR #2: Test environment updates
+5. Pushes all branches (unless DRY_RUN)
+6. Creates 3 PRs (unless DRY_RUN):
+   - PR #1: Version update (`libbeat/version/version.go`)
+   - PR #2: Documentation updates (K8s manifests, docs)
+   - PR #3: Test environment updates (docker-compose files)
 
 **Usage:**
 
@@ -405,22 +407,31 @@ Review changes with 'git diff'
 
 Some workflows create multiple PRs to separate concerns.
 
-### Patch Release (2 PRs)
+### Patch Release (3 PRs)
 
-**PR #1: Docs and Version**
-- Branch: `update-docs-version-X.Y.Z`
-- Updates: `libbeat/version/version.go`, docs, K8s manifests
-- Labels: `release`, `version`, `docs`
+**PR #1: Version**
+- Branch: `update-version-X.Y.Z`
+- Updates: `libbeat/version/version.go`
+- Labels: `release`, `version`
+- Merge: After the previous release
 
-**PR #2: Test Environment**
+**PR #2: Docs**
+- Branch: `update-docs-X.Y.Z`
+- Updates: `libbeat/docs/version.asciidoc`, K8s manifests (metricbeat, filebeat, heartbeat, auditbeat)
+- Labels: `release`, `docs`
+- Merge: Before the final Release build
+
+**PR #3: Test Environment**
 - Branch: `update-testing-env-X.Y.Z`
-- Updates: All docker-compose files
+- Updates: docker-compose files (`testing/environments/latest.yml`, `metricbeat/docker-compose.yml`, `x-pack/metricbeat/docker-compose.yml`)
 - Labels: `release`, `testing`
+- Merge: Only after the previous release
 
 **Why separate PRs?**
-- Docs/version updates need review by docs team
-- Test env updates can be merged independently
-- Allows parallel review and merge
+- Version updates are simple and can be merged quickly
+- Docs updates need review by docs team
+- Test env updates depend on the previous release being published
+- Allows parallel review and sequential merge based on dependencies
 
 ### Reviewing Multi-PR Workflows
 
@@ -429,16 +440,22 @@ Some workflows create multiple PRs to separate concerns.
 === Patch Release Workflow Complete ===
 PR 1: https://github.com/elastic/beats/pull/12345
 PR 2: https://github.com/elastic/beats/pull/12346
+PR 3: https://github.com/elastic/beats/pull/12347
 
 # Review each PR
 gh pr view 12345
 gh pr view 12346
+gh pr view 12347
 
-# Approve and merge when ready
-gh pr review 12345 --approve
-gh pr merge 12345
+# Approve and merge in order
 gh pr review 12346 --approve
-gh pr merge 12346
+gh pr merge 12346  # Merge docs first
+
+gh pr review 12345 --approve
+gh pr merge 12345  # Then version after previous release
+
+gh pr review 12347 --approve
+gh pr merge 12347  # Finally test env after previous release
 ```
 
 ## Changelog Workflow

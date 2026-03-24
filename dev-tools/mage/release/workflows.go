@@ -179,7 +179,7 @@ cc @%s
 	return nil
 }
 
-// RunPatchRelease executes the patch release workflow (creates 2 PRs)
+// RunPatchRelease executes the patch release workflow (creates 3 PRs)
 func RunPatchRelease(cfg *ReleaseConfig) error {
 	fmt.Println("=== Starting Patch Release Workflow ===")
 
@@ -194,28 +194,27 @@ func RunPatchRelease(cfg *ReleaseConfig) error {
 	// Define PRs to create
 	prConfigs := []PRConfig{
 		{
-			BranchName: fmt.Sprintf("update-docs-version-%s", cfg.CurrentRelease),
-			Title:      fmt.Sprintf("Update docs and version for %s", cfg.CurrentRelease),
-			Body: fmt.Sprintf(`## Update Documentation and Version for %s
+			BranchName: fmt.Sprintf("update-version-%s", cfg.CurrentRelease),
+			Title:      fmt.Sprintf("[Release] Update version to %s", cfg.CurrentRelease),
+			Body: fmt.Sprintf(`Updates references to the new release %s.
 
-This PR updates documentation and version files for the %s patch release.
+Merge after the release %s.`, cfg.CurrentRelease, cfg.LatestRelease),
+			Labels: []string{"release", "version"},
+		},
+		{
+			BranchName: fmt.Sprintf("update-docs-%s", cfg.CurrentRelease),
+			Title:      fmt.Sprintf("docs: update docs versions %s", cfg.CurrentRelease),
+			Body: fmt.Sprintf(`Updates docs versions to %s.
 
-### Changes
-- Updated version to %s
-- Updated documentation references
-`, cfg.CurrentRelease, cfg.CurrentRelease, cfg.CurrentRelease),
-			Labels: []string{"release", "version", "docs"},
+Merge before the final Release build.`, cfg.CurrentRelease),
+			Labels: []string{"release", "docs"},
 		},
 		{
 			BranchName: fmt.Sprintf("update-testing-env-%s", cfg.CurrentRelease),
-			Title:      fmt.Sprintf("Update testing environment for %s", cfg.CurrentRelease),
-			Body: fmt.Sprintf(`## Update Testing Environment for %s
+			Title:      fmt.Sprintf("[Release] Update test environments for %s", cfg.CurrentRelease),
+			Body: fmt.Sprintf(`Update test environment versions to the correct Elastic Stack version.
 
-This PR updates test environment configurations for the %s patch release.
-
-### Changes
-- Updated docker-compose files with new version
-`, cfg.CurrentRelease, cfg.CurrentRelease),
+Merge only after the release of %s.`, cfg.LatestRelease),
 			Labels: []string{"release", "testing"},
 		},
 	}
@@ -226,8 +225,8 @@ This PR updates test environment configurations for the %s patch release.
 		return err
 	}
 
-	// PR 1: Docs and version
-	fmt.Println("\n--- Creating PR 1: Docs and Version ---")
+	// PR 1: Version
+	fmt.Println("\n--- Creating PR 1: Version ---")
 	if err := repo.CheckoutBranch(cfg.BaseBranch); err != nil {
 		return err
 	}
@@ -241,25 +240,42 @@ This PR updates test environment configurations for the %s patch release.
 	if err := UpdateVersion(cfg.CurrentRelease); err != nil {
 		return err
 	}
+
+	if err := repo.CommitAll(fmt.Sprintf("Update version to %s", cfg.CurrentRelease), cfg.GitAuthorName, cfg.GitAuthorEmail); err != nil {
+		return err
+	}
+
+	// PR 2: Docs
+	fmt.Println("\n--- Creating PR 2: Docs ---")
+	if err := repo.CheckoutBranch(cfg.BaseBranch); err != nil {
+		return err
+	}
+	if err := repo.CreateBranch(prConfigs[1].BranchName); err != nil {
+		return err
+	}
+	if err := repo.CheckoutBranch(prConfigs[1].BranchName); err != nil {
+		return err
+	}
+
 	if err := UpdateDocs(cfg.CurrentRelease); err != nil {
 		return err
 	}
 
-	if err := repo.CommitAll(fmt.Sprintf("Update docs and version for %s", cfg.CurrentRelease), cfg.GitAuthorName, cfg.GitAuthorEmail); err != nil {
+	if err := repo.CommitAll(fmt.Sprintf("Update docs for %s", cfg.CurrentRelease), cfg.GitAuthorName, cfg.GitAuthorEmail); err != nil {
 		return err
 	}
 
-	// PR 2: Test environment (only if LATEST_RELEASE is set)
+	// PR 3: Test environment (only if LATEST_RELEASE is set)
 	testEnvHasChanges := false
 	if cfg.LatestRelease != "" {
-		fmt.Println("\n--- Creating PR 2: Test Environment ---")
+		fmt.Println("\n--- Creating PR 3: Test Environment ---")
 		if err := repo.CheckoutBranch(cfg.BaseBranch); err != nil {
 			return err
 		}
-		if err := repo.CreateBranch(prConfigs[1].BranchName); err != nil {
+		if err := repo.CreateBranch(prConfigs[2].BranchName); err != nil {
 			return err
 		}
-		if err := repo.CheckoutBranch(prConfigs[1].BranchName); err != nil {
+		if err := repo.CheckoutBranch(prConfigs[2].BranchName); err != nil {
 			return err
 		}
 
@@ -285,12 +301,12 @@ This PR updates test environment configurations for the %s patch release.
 	}
 
 	// Determine which branches to push and which PRs to create
-	branchesToPush := []string{prConfigs[0].BranchName}
-	prsToCreate := []PRConfig{prConfigs[0]}
+	branchesToPush := []string{prConfigs[0].BranchName, prConfigs[1].BranchName}
+	prsToCreate := []PRConfig{prConfigs[0], prConfigs[1]}
 
 	if testEnvHasChanges {
-		branchesToPush = append(branchesToPush, prConfigs[1].BranchName)
-		prsToCreate = append(prsToCreate, prConfigs[1])
+		branchesToPush = append(branchesToPush, prConfigs[2].BranchName)
+		prsToCreate = append(prsToCreate, prConfigs[2])
 	}
 
 	// Push and create PRs (skip in dry-run mode)

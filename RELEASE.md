@@ -68,7 +68,7 @@ mage release:runMajorMinor
 
 ### Patch Release (9.2.1)
 
-Creates 2 PRs (docs+version, test-env):
+Creates 3 PRs (version, docs, test-env):
 
 ```bash
 git checkout 9.2
@@ -155,6 +155,7 @@ In DRY_RUN mode:
 | `libbeat/docs/version.asciidoc` | Stack version, doc branch | CURRENT_RELEASE |
 | `deploy/kubernetes/metricbeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
 | `deploy/kubernetes/filebeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
+| `deploy/kubernetes/heartbeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
 | `deploy/kubernetes/auditbeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
 | `README.md` | Branch references | CURRENT_RELEASE |
 | `testing/environments/docker/elasticsearch_kerberos/Dockerfile` | Docker image tag | LATEST_RELEASE |
