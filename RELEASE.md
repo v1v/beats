@@ -149,21 +149,23 @@ In DRY_RUN mode:
 
 ## Files Updated by Release Automation
 
-| File | Update Type |
-|------|-------------|
-| `libbeat/version/version.go` | Version constant |
-| `libbeat/docs/version.asciidoc` | Stack version, doc branch |
-| `deploy/kubernetes/metricbeat-kubernetes.yaml` | Docker image tag |
-| `deploy/kubernetes/filebeat-kubernetes.yaml` | Docker image tag |
-| `deploy/kubernetes/auditbeat-kubernetes.yaml` | Docker image tag |
-| `README.md` | Branch references |
-| `testing/environments/docker/elasticsearch_kerberos/Dockerfile` | Docker image tag |
-| `testing/environments/latest.yml` | Docker image tag |
-| `x-pack/metricbeat/docker-compose.yml` | Docker image tag |
-| `metricbeat/module/logstash/docker-compose.yml` | Docker image tag |
-| `metricbeat/docker-compose.yml` | Docker image tag |
-| `.mergify.yml` | Backport configuration |
-| `CHANGELOG.asciidoc` | Changelog entries |
+| File | Update Type | Updated To |
+|------|-------------|------------|
+| `libbeat/version/version.go` | Version constant | CURRENT_RELEASE |
+| `libbeat/docs/version.asciidoc` | Stack version, doc branch | CURRENT_RELEASE |
+| `deploy/kubernetes/metricbeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
+| `deploy/kubernetes/filebeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
+| `deploy/kubernetes/auditbeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
+| `README.md` | Branch references | CURRENT_RELEASE |
+| `testing/environments/docker/elasticsearch_kerberos/Dockerfile` | Docker image tag | LATEST_RELEASE |
+| `testing/environments/latest.yml` | Docker image tag | LATEST_RELEASE |
+| `x-pack/metricbeat/docker-compose.yml` | Docker image tag | LATEST_RELEASE |
+| `metricbeat/module/logstash/docker-compose.yml` | Docker image tag | LATEST_RELEASE |
+| `metricbeat/docker-compose.yml` | Docker image tag | LATEST_RELEASE |
+| `.mergify.yml` | Backport configuration | CURRENT_RELEASE |
+| `CHANGELOG.asciidoc` | Changelog entries | CURRENT_RELEASE |
+
+**Note:** Test environment files are updated to `LATEST_RELEASE` (not `CURRENT_RELEASE`) to use the previous stable version for testing.
 
 ## Troubleshooting
 

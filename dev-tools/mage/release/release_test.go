@@ -143,11 +143,11 @@ func TestUpdateTestEnv(t *testing.T) {
 	latestYml := filepath.Join(testEnvDir, "latest.yml")
 	latestContent := `services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.3.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.3.1
   kibana:
     image: docker.elastic.co/kibana/kibana:9.3.2
   logstash:
-    image: docker.elastic.co/logstash/logstash:9.3.1
+    image: docker.elastic.co/logstash/logstash:9.3.0
 `
 	err = os.WriteFile(latestYml, []byte(latestContent), 0644)
 	if err != nil {
@@ -159,22 +159,26 @@ func TestUpdateTestEnv(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(tmpDir)
 
-	// Test updating test env - should match any 9.3.x version
-	err = UpdateTestEnv("9.3.0", "9.3.4")
+	// Test updating test env
+	// When releasing 9.3.4, we want test envs to use 9.3.3 (latest stable)
+	// UpdateTestEnv(latestVersion, currentVersion)
+	// - Matches all 9.3.x (from currentVersion)
+	// - Replaces with latestVersion (9.3.3)
+	err = UpdateTestEnv("9.3.3", "9.3.4")
 	if err != nil {
 		t.Fatalf("UpdateTestEnv failed: %v", err)
 	}
 
-	// Verify all 9.3.x versions were updated to 9.3.4
+	// Verify all 9.3.x versions were updated to 9.3.3 (not 9.3.4)
 	content, _ := os.ReadFile(latestYml)
 	contentStr := string(content)
-	if !strings.Contains(contentStr, "docker.elastic.co/elasticsearch/elasticsearch:9.3.4") {
+	if !strings.Contains(contentStr, "docker.elastic.co/elasticsearch/elasticsearch:9.3.3") {
 		t.Errorf("elasticsearch not updated. Got:\n%s", contentStr)
 	}
-	if !strings.Contains(contentStr, "docker.elastic.co/kibana/kibana:9.3.4") {
+	if !strings.Contains(contentStr, "docker.elastic.co/kibana/kibana:9.3.3") {
 		t.Errorf("kibana not updated. Got:\n%s", contentStr)
 	}
-	if !strings.Contains(contentStr, "docker.elastic.co/logstash/logstash:9.3.4") {
+	if !strings.Contains(contentStr, "docker.elastic.co/logstash/logstash:9.3.3") {
 		t.Errorf("logstash not updated. Got:\n%s", contentStr)
 	}
 	// Verify old versions are gone
@@ -286,10 +290,11 @@ func TestUpdateTestEnvNoChanges(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(tmpDir)
 
-	// Test updating test env from 9.3.x to 9.3.4
+	// Test updating test env when releasing 9.3.4
+	// UpdateTestEnv("9.3.3", "9.3.4") looks for 9.3.x versions to update to 9.3.3
 	// File has 9.2.5, so pattern 9.3.\d+ won't match
 	// This should complete without error even though no changes are made
-	err = UpdateTestEnv("9.3.0", "9.3.4")
+	err = UpdateTestEnv("9.3.3", "9.3.4")
 	if err != nil {
 		t.Fatalf("UpdateTestEnv should not fail when no matches found: %v", err)
 	}

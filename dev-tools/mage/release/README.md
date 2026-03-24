@@ -306,15 +306,22 @@ mage release:updateDocs 9.3.0
 
 ### UpdateTestEnv
 
-Updates Docker image versions in test environment files:
+Updates Docker image versions in test environment files to use the latest stable version:
 
 ```bash
-mage release:updateTestEnv 9.2.0 9.3.0
+mage release:updateTestEnv 9.3.3 9.3.4
 ```
 
 Arguments:
-1. `latest` - Previous version to replace
-2. `current` - New version to use
+1. `latest` - Latest stable version (what to update TO)
+2. `current` - Current release being prepared (determines which versions to match)
+
+**How it works:**
+- Extracts major.minor from `current` version (e.g., `9.3.4` → `9.3`)
+- Matches all `9.3.x` versions in test environment files
+- Replaces them with `latest` version (e.g., `9.3.3`)
+
+**Example:** When releasing `9.3.4`, this updates test environments from any `9.3.x` to `9.3.3` (the previous stable version).
 
 **Files updated:**
 - `testing/environments/docker/elasticsearch_kerberos/Dockerfile`
