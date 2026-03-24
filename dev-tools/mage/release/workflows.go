@@ -211,7 +211,7 @@ Merge before the final Release build.`, cfg.LatestRelease),
 		},
 		{
 			BranchName: fmt.Sprintf("update-testing-env-%s", cfg.CurrentRelease),
-			Title:      fmt.Sprintf("[Release] Update test environments for %s", cfg.CurrentRelease),
+			Title:      fmt.Sprintf("[Release] Update test environments for %s", cfg.LatestRelease),
 			Body: fmt.Sprintf(`Update test environment versions to the correct Elastic Stack version.
 
 Merge only after the release of %s.`, cfg.LatestRelease),

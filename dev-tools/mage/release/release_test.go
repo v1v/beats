@@ -169,6 +169,27 @@ func TestUpdateTestEnv(t *testing.T) {
 		t.Fatalf("Failed to create latest.yml: %v", err)
 	}
 
+	// Create metricbeat docker-compose with variable defaults
+	metricbeatDir := filepath.Join(tmpDir, "metricbeat")
+	err = os.MkdirAll(metricbeatDir, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create metricbeat dir: %v", err)
+	}
+	metricbeatCompose := filepath.Join(metricbeatDir, "docker-compose.yml")
+	metricbeatContent := `services:
+  elasticsearch:
+    image: docker.elastic.co/integrations-ci/beats-elasticsearch:${ELASTICSEARCH_VERSION:-9.3.1}-1
+    build:
+      args:
+        ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION:-9.3.1}
+  kibana:
+    image: docker.elastic.co/integrations-ci/beats-kibana:${KIBANA_VERSION:-9.3.0}-1
+`
+	err = os.WriteFile(metricbeatCompose, []byte(metricbeatContent), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create metricbeat docker-compose: %v", err)
+	}
+
 	// Change to temp directory
 	origDir, _ := os.Getwd()
 	defer os.Chdir(origDir)
@@ -184,7 +205,7 @@ func TestUpdateTestEnv(t *testing.T) {
 		t.Fatalf("UpdateTestEnv failed: %v", err)
 	}
 
-	// Verify all 9.3.x versions were updated to 9.3.3 (not 9.3.4)
+	// Verify all 9.3.x versions in latest.yml were updated to 9.3.3 (not 9.3.4)
 	content, _ := os.ReadFile(latestYml)
 	contentStr := string(content)
 	if !strings.Contains(contentStr, "docker.elastic.co/elasticsearch/elasticsearch:9.3.3") {
@@ -198,7 +219,21 @@ func TestUpdateTestEnv(t *testing.T) {
 	}
 	// Verify old versions are gone
 	if strings.Contains(contentStr, ":9.3.0") || strings.Contains(contentStr, ":9.3.1") || strings.Contains(contentStr, ":9.3.2") {
-		t.Errorf("Old versions still present. Got:\n%s", contentStr)
+		t.Errorf("Old versions still present in latest.yml. Got:\n%s", contentStr)
+	}
+
+	// Verify metricbeat docker-compose variable defaults were updated
+	content, _ = os.ReadFile(metricbeatCompose)
+	contentStr = string(content)
+	if !strings.Contains(contentStr, "${ELASTICSEARCH_VERSION:-9.3.3}") {
+		t.Errorf("ELASTICSEARCH_VERSION default not updated. Got:\n%s", contentStr)
+	}
+	if !strings.Contains(contentStr, "${KIBANA_VERSION:-9.3.3}") {
+		t.Errorf("KIBANA_VERSION default not updated. Got:\n%s", contentStr)
+	}
+	// Verify old variable defaults are gone
+	if strings.Contains(contentStr, ":-9.3.0}") || strings.Contains(contentStr, ":-9.3.1}") {
+		t.Errorf("Old variable defaults still present in metricbeat compose. Got:\n%s", contentStr)
 	}
 }
 

@@ -133,11 +133,16 @@ func UpdateTestEnv(latestVersion, currentVersion string) error {
 	}
 	majorMinor := parts[0] + "\\." + parts[1]
 
-	// Pattern: docker.elastic.co/...:X.Y.<any-patch>
+	// Pattern 1: docker.elastic.co/...:X.Y.<any-patch>
 	// This matches any patch version in the same major.minor line
 	// and replaces it with latestVersion (the previous stable release)
-	pattern := regexp.MustCompile(fmt.Sprintf(`docker\.elastic\.co/([^:]+):%s\.\d+`, majorMinor))
-	replacement := fmt.Sprintf("docker.elastic.co/$1:%s", latestVersion)
+	pattern1 := regexp.MustCompile(fmt.Sprintf(`docker\.elastic\.co/([^:]+):%s\.\d+`, majorMinor))
+	replacement1 := fmt.Sprintf("docker.elastic.co/$1:%s", latestVersion)
+
+	// Pattern 2: ${VAR_NAME:-X.Y.Z}
+	// This matches environment variable defaults like ${ELASTICSEARCH_VERSION:-9.3.1}
+	pattern2 := regexp.MustCompile(fmt.Sprintf(`(\$\{[^:]+:-)%s\.\d+(\})`, majorMinor))
+	replacement2 := fmt.Sprintf("${1}%s${2}", latestVersion)
 
 	for _, filePath := range files {
 		// Check if file exists
@@ -151,7 +156,9 @@ func UpdateTestEnv(latestVersion, currentVersion string) error {
 			return fmt.Errorf("failed to read %s: %w", filePath, err)
 		}
 
-		newContent := pattern.ReplaceAllString(string(content), replacement)
+		// Apply both patterns
+		newContent := pattern1.ReplaceAllString(string(content), replacement1)
+		newContent = pattern2.ReplaceAllString(newContent, replacement2)
 
 		if newContent != string(content) {
 			err = os.WriteFile(filePath, []byte(newContent), 0644)
