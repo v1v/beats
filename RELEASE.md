@@ -47,12 +47,16 @@ These values are inferred to reduce manual configuration. You can always overrid
 
 ### Major/Minor Release (9.3.0)
 
-Creates 1 PR with all version updates:
+Creates 2 PRs to bump version to NEXT_RELEASE (9.3.1):
 
 ```bash
 export CURRENT_RELEASE="9.3.0"
 export GITHUB_TOKEN="ghp_your_token"
 export DRY_RUN=true
+
+# Auto-inferred:
+# NEXT_RELEASE = "9.3.1" (for post-release development)
+# RELEASE_BRANCH = "9.3"
 
 # Test first (no push/PR)
 mage release:runMajorMinor

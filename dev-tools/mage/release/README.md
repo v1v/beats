@@ -28,7 +28,7 @@ This package provides release automation for the Beats project, migrated from Ma
 - Deprecated version checks
 
 **Workflows supported:**
-1. **Major/Minor Release** - Creates 1 PR with all updates
+1. **Major/Minor Release** - Creates 2 PRs to bump to NEXT_RELEASE (version+docs, test-env)
 2. **Patch Release** - Creates 3 PRs (version, docs, test-env)
 3. **Changelog** - Generates changelog and creates 1 PR
 
@@ -174,22 +174,23 @@ Creates a new major or minor release (e.g., 9.0.0, 9.3.0).
 **What it does:**
 1. Validates version and checks for deprecated releases
 2. Creates release branch (e.g., `9.3`)
-3. Creates update branch (e.g., `update-version-9.3.0`)
-4. Updates version in `libbeat/version/version.go`
-5. Updates documentation and K8s manifests
-6. Updates test environment configurations
-7. Commits all changes
-8. Pushes to remote (unless DRY_RUN)
-9. Creates 1 PR (unless DRY_RUN)
+3. Creates 2 PRs on main branch to bump version to NEXT_RELEASE (e.g., 9.3.1):
+   - PR #1: Update version and docs to NEXT_RELEASE
+   - PR #2: Update test environments to NEXT_RELEASE
+4. These PRs prepare main branch for development after the release
 
 **Usage:**
 
 ```bash
 # Test first with DRY_RUN
 export CURRENT_RELEASE="9.3.0"
-export LATEST_RELEASE="9.2.5"  # Required for .0 releases (auto-inference will fail)
 export GITHUB_TOKEN="ghp_your_token"
 export DRY_RUN=true
+
+# Auto-inferred values:
+# NEXT_RELEASE = "9.3.1" (for post-release development)
+# RELEASE_BRANCH = "9.3"
+# Note: LATEST_RELEASE will fail to infer for .0 releases (that's OK)
 
 mage release:runMajorMinor
 
@@ -201,6 +202,8 @@ git log
 # Run for real
 export DRY_RUN=false
 mage release:runMajorMinor
+
+# Note: Release notes should be created separately
 ```
 
 **Blocked versions:**
