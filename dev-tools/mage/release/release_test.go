@@ -139,11 +139,15 @@ func TestUpdateTestEnv(t *testing.T) {
 		t.Fatalf("Failed to create test env dir: %v", err)
 	}
 
-	// Create latest.yml
+	// Create latest.yml with multiple versions in the same minor line
 	latestYml := filepath.Join(testEnvDir, "latest.yml")
 	latestContent := `services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.3.0
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.3.2
+  logstash:
+    image: docker.elastic.co/logstash/logstash:9.3.1
 `
 	err = os.WriteFile(latestYml, []byte(latestContent), 0644)
 	if err != nil {
@@ -155,16 +159,27 @@ func TestUpdateTestEnv(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(tmpDir)
 
-	// Test updating test env
-	err = UpdateTestEnv("9.3.0", "9.4.0")
+	// Test updating test env - should match any 9.3.x version
+	err = UpdateTestEnv("9.3.0", "9.3.4")
 	if err != nil {
 		t.Fatalf("UpdateTestEnv failed: %v", err)
 	}
 
-	// Verify file was updated
+	// Verify all 9.3.x versions were updated to 9.3.4
 	content, _ := os.ReadFile(latestYml)
-	if !strings.Contains(string(content), "docker.elastic.co/elasticsearch/elasticsearch:9.4.0") {
-		t.Errorf("Test env file not updated. Got:\n%s", string(content))
+	contentStr := string(content)
+	if !strings.Contains(contentStr, "docker.elastic.co/elasticsearch/elasticsearch:9.3.4") {
+		t.Errorf("elasticsearch not updated. Got:\n%s", contentStr)
+	}
+	if !strings.Contains(contentStr, "docker.elastic.co/kibana/kibana:9.3.4") {
+		t.Errorf("kibana not updated. Got:\n%s", contentStr)
+	}
+	if !strings.Contains(contentStr, "docker.elastic.co/logstash/logstash:9.3.4") {
+		t.Errorf("logstash not updated. Got:\n%s", contentStr)
+	}
+	// Verify old versions are gone
+	if strings.Contains(contentStr, ":9.3.0") || strings.Contains(contentStr, ":9.3.1") || strings.Contains(contentStr, ":9.3.2") {
+		t.Errorf("Old versions still present. Got:\n%s", contentStr)
 	}
 }
 
@@ -255,11 +270,11 @@ func TestUpdateTestEnvNoChanges(t *testing.T) {
 		t.Fatalf("Failed to create test env dir: %v", err)
 	}
 
-	// Create latest.yml with a version that won't match
+	// Create latest.yml with a version from a different minor line
 	latestYml := filepath.Join(testEnvDir, "latest.yml")
 	latestContent := `services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.5
 `
 	err = os.WriteFile(latestYml, []byte(latestContent), 0644)
 	if err != nil {
@@ -271,16 +286,17 @@ func TestUpdateTestEnvNoChanges(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(tmpDir)
 
-	// Test updating test env with non-matching version
+	// Test updating test env from 9.3.x to 9.3.4
+	// File has 9.2.5, so pattern 9.3.\d+ won't match
 	// This should complete without error even though no changes are made
-	err = UpdateTestEnv("9.2.0", "9.3.0")
+	err = UpdateTestEnv("9.3.0", "9.3.4")
 	if err != nil {
 		t.Fatalf("UpdateTestEnv should not fail when no matches found: %v", err)
 	}
 
-	// Verify file was NOT updated (version should still be 9.1.0)
+	// Verify file was NOT updated (version should still be 9.2.5)
 	content, _ := os.ReadFile(latestYml)
-	if !strings.Contains(string(content), "docker.elastic.co/elasticsearch/elasticsearch:9.1.0") {
+	if !strings.Contains(string(content), "docker.elastic.co/elasticsearch/elasticsearch:9.2.5") {
 		t.Errorf("Test env file should not be updated when version doesn't match. Got:\n%s", string(content))
 	}
 }

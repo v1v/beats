@@ -119,8 +119,16 @@ func UpdateTestEnv(latestVersion, currentVersion string) error {
 		"metricbeat/docker-compose.yml",
 	}
 
-	// Pattern: docker.elastic.co/...:X.Y.Z
-	pattern := regexp.MustCompile(fmt.Sprintf(`docker\.elastic\.co/([^:]+):%s`, regexp.QuoteMeta(latestVersion)))
+	// Extract major.minor from latestVersion (e.g., "9.3.4" -> "9.3")
+	parts := strings.Split(latestVersion, ".")
+	if len(parts) < 2 {
+		return fmt.Errorf("invalid version format: %s", latestVersion)
+	}
+	majorMinor := parts[0] + "\\." + parts[1]
+
+	// Pattern: docker.elastic.co/...:X.Y.<any-patch>
+	// This matches any patch version in the same major.minor line
+	pattern := regexp.MustCompile(fmt.Sprintf(`docker\.elastic\.co/([^:]+):%s\.\d+`, majorMinor))
 	replacement := fmt.Sprintf("docker.elastic.co/$1:%s", currentVersion)
 
 	for _, filePath := range files {
@@ -146,7 +154,7 @@ func UpdateTestEnv(latestVersion, currentVersion string) error {
 		}
 	}
 
-	fmt.Printf("Updated test environment files from %s to %s\n", latestVersion, currentVersion)
+	fmt.Printf("Updated test environment files to %s\n", currentVersion)
 	return nil
 }
 
