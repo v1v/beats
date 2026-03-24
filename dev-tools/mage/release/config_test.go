@@ -18,6 +18,7 @@
 package release
 
 import (
+	"os"
 	"testing"
 )
 
@@ -156,5 +157,42 @@ func TestInferReleaseBranch(t *testing.T) {
 				t.Errorf("inferReleaseBranch() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestLoadConfigForMajorMinorRelease(t *testing.T) {
+	// Save and restore env
+	oldCurrent := os.Getenv("CURRENT_RELEASE")
+	defer func() {
+		if oldCurrent != "" {
+			os.Setenv("CURRENT_RELEASE", oldCurrent)
+		} else {
+			os.Unsetenv("CURRENT_RELEASE")
+		}
+	}()
+
+	// Test with 9.3.0 (major/minor release)
+	os.Setenv("CURRENT_RELEASE", "9.3.0")
+
+	cfg, err := LoadConfigFromEnv()
+	if err != nil {
+		t.Fatalf("LoadConfigFromEnv failed: %v", err)
+	}
+
+	if cfg.CurrentRelease != "9.3.0" {
+		t.Errorf("CurrentRelease = %s, want 9.3.0", cfg.CurrentRelease)
+	}
+
+	// For .0 releases, LatestRelease should be empty (can't be inferred)
+	if cfg.LatestRelease != "" {
+		t.Errorf("LatestRelease should be empty for .0 release, got %s", cfg.LatestRelease)
+	}
+
+	if cfg.NextRelease != "9.3.1" {
+		t.Errorf("NextRelease = %s, want 9.3.1", cfg.NextRelease)
+	}
+
+	if cfg.ReleaseBranch != "9.3" {
+		t.Errorf("ReleaseBranch = %s, want 9.3", cfg.ReleaseBranch)
 	}
 }
