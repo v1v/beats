@@ -104,9 +104,10 @@ All configuration is done via environment variables.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LATEST_RELEASE` | - | Previous release version (for test env updates) |
+| `LATEST_RELEASE` | Auto-inferred | Previous release version (auto-inferred as patch - 1) |
+| `NEXT_RELEASE` | Auto-inferred | Next release version (auto-inferred as patch + 1) |
+| `RELEASE_BRANCH` | Auto-inferred | Release branch name (auto-inferred as major.minor from CURRENT_RELEASE) |
 | `BASE_BRANCH` | `"main"` | Base branch for PRs |
-| `RELEASE_BRANCH` | Auto-derived from `CURRENT_RELEASE` | Release branch name |
 | `PROJECT_OWNER` | `"elastic"` | GitHub repository owner |
 | `PROJECT_REPO` | `"beats"` | GitHub repository name |
 | `PROJECT_REVIEWERS` | `"elastic/elastic-agent-release"` | Comma-separated reviewers |
@@ -115,18 +116,50 @@ All configuration is done via environment variables.
 | `GIT_AUTHOR_EMAIL` | `"github-actions[bot]@users.noreply.github.com"` | Git commit author email |
 | `CHANGELOG_TO_COMMIT` | `"HEAD"` | Commit to generate changelog to |
 
+### Auto-Inference
+
+The following values are automatically inferred from `CURRENT_RELEASE` to reduce manual configuration. They can be overridden by setting the corresponding environment variable explicitly:
+
+**LATEST_RELEASE**: Calculated as `CURRENT_RELEASE` with patch version decremented by 1
+- Example: `9.3.4` → `9.3.3`
+- Used for: Test environment updates, changelog generation
+- Note: Will fail if patch version is 0 (e.g., `9.3.0`). For the first patch release (x.y.0), explicitly set `LATEST_RELEASE` to the previous minor version if needed, or leave unset to skip test environment updates.
+
+**NEXT_RELEASE**: Calculated as `CURRENT_RELEASE` with patch version incremented by 1
+- Example: `9.3.4` → `9.3.5`
+- Used for: Planning next release version
+
+**RELEASE_BRANCH**: Extracted major.minor from `CURRENT_RELEASE`
+- Example: `9.3.4` → `9.3`
+- Used for: Creating release branch, determining PR base branch
+
+**Override example:**
+```bash
+export CURRENT_RELEASE="9.3.4"
+# Auto-inferred values:
+# LATEST_RELEASE = "9.3.3"
+# NEXT_RELEASE = "9.3.5"
+# RELEASE_BRANCH = "9.3"
+
+# Override if needed:
+export LATEST_RELEASE="9.3.2"  # Skip 9.3.3
+export RELEASE_BRANCH="9.3.1"  # Custom branch name
+```
+
 ### Example Configuration
 
 ```bash
-# Minimal configuration
-export CURRENT_RELEASE="9.3.0"
+# Minimal configuration (most common)
+export CURRENT_RELEASE="9.3.4"
 export GITHUB_TOKEN="ghp_your_token"
+# LATEST_RELEASE, NEXT_RELEASE, and RELEASE_BRANCH are auto-inferred
 
-# Full configuration
-export CURRENT_RELEASE="9.3.0"
-export LATEST_RELEASE="9.2.0"
+# Full configuration with overrides
+export CURRENT_RELEASE="9.3.4"
+export LATEST_RELEASE="9.3.3"  # Override auto-inferred value
+export NEXT_RELEASE="9.3.5"    # Override auto-inferred value
+export RELEASE_BRANCH="9.3"    # Override auto-inferred value
 export BASE_BRANCH="main"
-export RELEASE_BRANCH="9.3"
 export GITHUB_TOKEN="ghp_your_token"
 export PROJECT_REVIEWERS="elastic/elastic-agent-release,user1,user2"
 export DRY_RUN="true"
@@ -201,9 +234,12 @@ git pull
 
 # Configure and run
 export CURRENT_RELEASE="9.2.1"
-export LATEST_RELEASE="9.2.0"
 export BASE_BRANCH="9.2"
 export GITHUB_TOKEN="ghp_your_token"
+
+# LATEST_RELEASE and RELEASE_BRANCH are auto-inferred:
+# LATEST_RELEASE = "9.2.0" (patch - 1)
+# RELEASE_BRANCH = "9.2" (major.minor)
 
 mage release:runPatch
 ```
@@ -422,11 +458,13 @@ beats-changelog --help
 ### Running the Workflow
 
 ```bash
-export CURRENT_RELEASE="9.3.0"
-export LATEST_RELEASE="9.2.0"
-export RELEASE_BRANCH="9.3"
+export CURRENT_RELEASE="9.3.1"
 export GITHUB_TOKEN="ghp_your_token"
 export CHANGELOG_TO_COMMIT="HEAD"  # Or specific commit
+
+# LATEST_RELEASE and RELEASE_BRANCH are auto-inferred:
+# LATEST_RELEASE = "9.3.0" (patch - 1)
+# RELEASE_BRANCH = "9.3" (major.minor)
 
 mage release:runChangelog
 ```
