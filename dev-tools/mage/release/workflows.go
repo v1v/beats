@@ -119,7 +119,7 @@ Merge only after the release of %s.`, cfg.CurrentRelease),
 	if err := UpdateVersion(cfg.NextRelease); err != nil {
 		return err
 	}
-	if err := UpdateDocs(cfg.CurrentRelease); err != nil {
+	if err := UpdateDocs(cfg.NextRelease); err != nil {
 		return err
 	}
 
