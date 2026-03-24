@@ -418,6 +418,7 @@ Some workflows create multiple PRs to separate concerns.
 **PR #2: Docs**
 - Branch: `update-docs-X.Y.Z`
 - Updates: `libbeat/docs/version.asciidoc`, K8s manifests (metricbeat, filebeat, heartbeat, auditbeat)
+- Updated to: LATEST_RELEASE (the previous stable version, not the one being released)
 - Labels: `release`, `docs`
 - Merge: Before the final Release build
 

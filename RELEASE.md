@@ -152,12 +152,12 @@ In DRY_RUN mode:
 | File | Update Type | Updated To |
 |------|-------------|------------|
 | `libbeat/version/version.go` | Version constant | CURRENT_RELEASE |
-| `libbeat/docs/version.asciidoc` | Stack version, doc branch | CURRENT_RELEASE |
-| `deploy/kubernetes/metricbeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
-| `deploy/kubernetes/filebeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
-| `deploy/kubernetes/heartbeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
-| `deploy/kubernetes/auditbeat-kubernetes.yaml` | Docker image tag | CURRENT_RELEASE |
-| `README.md` | Branch references | CURRENT_RELEASE |
+| `libbeat/docs/version.asciidoc` | Stack version, doc branch | LATEST_RELEASE |
+| `deploy/kubernetes/metricbeat-kubernetes.yaml` | Docker image tag | LATEST_RELEASE |
+| `deploy/kubernetes/filebeat-kubernetes.yaml` | Docker image tag | LATEST_RELEASE |
+| `deploy/kubernetes/heartbeat-kubernetes.yaml` | Docker image tag | LATEST_RELEASE |
+| `deploy/kubernetes/auditbeat-kubernetes.yaml` | Docker image tag | LATEST_RELEASE |
+| `README.md` | Branch references | LATEST_RELEASE |
 | `testing/environments/docker/elasticsearch_kerberos/Dockerfile` | Docker image tag | LATEST_RELEASE |
 | `testing/environments/latest.yml` | Docker image tag | LATEST_RELEASE |
 | `x-pack/metricbeat/docker-compose.yml` | Docker image tag | LATEST_RELEASE |
@@ -166,7 +166,7 @@ In DRY_RUN mode:
 | `.mergify.yml` | Backport configuration | CURRENT_RELEASE |
 | `CHANGELOG.asciidoc` | Changelog entries | CURRENT_RELEASE |
 
-**Note:** Test environment files are updated to `LATEST_RELEASE` (not `CURRENT_RELEASE`) to use the previous stable version for testing.
+**Note:** Documentation and test environment files are updated to `LATEST_RELEASE` (not `CURRENT_RELEASE`) to reference the previous stable/published version.
 
 ## Troubleshooting
 

@@ -93,13 +93,22 @@ func TestUpdateDocs(t *testing.T) {
 		t.Fatalf("Failed to create version.asciidoc: %v", err)
 	}
 
-	// Create K8s manifest
+	// Create K8s manifest with wolfi suffix
 	k8sFile := filepath.Join(tmpDir, "deploy/kubernetes/metricbeat-kubernetes.yaml")
-	k8sContent := `image: docker.elastic.co/beats/metricbeat:9.3.0
+	k8sContent := `image: docker.elastic.co/beats/metricbeat-wolfi:9.3.0
 `
 	err = os.WriteFile(k8sFile, []byte(k8sContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create K8s file: %v", err)
+	}
+
+	// Create filebeat K8s manifest without suffix
+	filebeat8sFile := filepath.Join(tmpDir, "deploy/kubernetes/filebeat-kubernetes.yaml")
+	filebeat8sContent := `image: docker.elastic.co/beats/filebeat:9.3.0
+`
+	err = os.WriteFile(filebeat8sFile, []byte(filebeat8sContent), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create filebeat K8s file: %v", err)
 	}
 
 	// Change to temp directory
@@ -122,10 +131,16 @@ func TestUpdateDocs(t *testing.T) {
 		t.Errorf("version.asciidoc doc-branch not updated. Got:\n%s", string(content))
 	}
 
-	// Verify K8s file was updated
+	// Verify K8s file with -wolfi suffix was updated correctly
 	content, _ = os.ReadFile(k8sFile)
-	if !strings.Contains(string(content), "docker.elastic.co/beats/metricbeat:9.4.0") {
-		t.Errorf("K8s file not updated. Got:\n%s", string(content))
+	if !strings.Contains(string(content), "docker.elastic.co/beats/metricbeat-wolfi:9.4.0") {
+		t.Errorf("K8s file with -wolfi not updated. Got:\n%s", string(content))
+	}
+
+	// Verify K8s file without suffix was updated correctly
+	content, _ = os.ReadFile(filebeat8sFile)
+	if !strings.Contains(string(content), "docker.elastic.co/beats/filebeat:9.4.0") {
+		t.Errorf("K8s file without suffix not updated. Got:\n%s", string(content))
 	}
 }
 

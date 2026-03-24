@@ -203,10 +203,10 @@ Merge after the release %s.`, cfg.CurrentRelease, cfg.LatestRelease),
 		},
 		{
 			BranchName: fmt.Sprintf("update-docs-%s", cfg.CurrentRelease),
-			Title:      fmt.Sprintf("docs: update docs versions %s", cfg.CurrentRelease),
+			Title:      fmt.Sprintf("docs: update docs versions %s", cfg.LatestRelease),
 			Body: fmt.Sprintf(`Updates docs versions to %s.
 
-Merge before the final Release build.`, cfg.CurrentRelease),
+Merge before the final Release build.`, cfg.LatestRelease),
 			Labels: []string{"release", "docs"},
 		},
 		{
@@ -257,11 +257,11 @@ Merge only after the release of %s.`, cfg.LatestRelease),
 		return err
 	}
 
-	if err := UpdateDocs(cfg.CurrentRelease); err != nil {
+	if err := UpdateDocs(cfg.LatestRelease); err != nil {
 		return err
 	}
 
-	if err := repo.CommitAll(fmt.Sprintf("Update docs for %s", cfg.CurrentRelease), cfg.GitAuthorName, cfg.GitAuthorEmail); err != nil {
+	if err := repo.CommitAll(fmt.Sprintf("Update docs for %s", cfg.LatestRelease), cfg.GitAuthorName, cfg.GitAuthorEmail); err != nil {
 		return err
 	}
 

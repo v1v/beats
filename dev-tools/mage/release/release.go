@@ -74,26 +74,26 @@ func UpdateDocs(newVersion string) error {
 		},
 		"deploy/kubernetes/metricbeat-kubernetes.yaml": {
 			{
-				pattern:     regexp.MustCompile(`docker\.elastic\.co/beats/metricbeat:\d+\.\d+\.\d+`),
-				replacement: fmt.Sprintf("docker.elastic.co/beats/metricbeat:%s", newVersion),
+				pattern:     regexp.MustCompile(`docker\.elastic\.co/beats/metricbeat(-[a-z]+)?:\d+\.\d+\.\d+`),
+				replacement: fmt.Sprintf("docker.elastic.co/beats/metricbeat$1:%s", newVersion),
 			},
 		},
 		"deploy/kubernetes/filebeat-kubernetes.yaml": {
 			{
-				pattern:     regexp.MustCompile(`docker\.elastic\.co/beats/filebeat:\d+\.\d+\.\d+`),
-				replacement: fmt.Sprintf("docker.elastic.co/beats/filebeat:%s", newVersion),
+				pattern:     regexp.MustCompile(`docker\.elastic\.co/beats/filebeat(-[a-z]+)?:\d+\.\d+\.\d+`),
+				replacement: fmt.Sprintf("docker.elastic.co/beats/filebeat$1:%s", newVersion),
 			},
 		},
 		"deploy/kubernetes/heartbeat-kubernetes.yaml": {
 			{
-				pattern:     regexp.MustCompile(`docker\.elastic\.co/beats/heartbeat:\d+\.\d+\.\d+`),
-				replacement: fmt.Sprintf("docker.elastic.co/beats/heartbeat:%s", newVersion),
+				pattern:     regexp.MustCompile(`docker\.elastic\.co/beats/heartbeat(-[a-z]+)?:\d+\.\d+\.\d+`),
+				replacement: fmt.Sprintf("docker.elastic.co/beats/heartbeat$1:%s", newVersion),
 			},
 		},
 		"deploy/kubernetes/auditbeat-kubernetes.yaml": {
 			{
-				pattern:     regexp.MustCompile(`docker\.elastic\.co/beats/auditbeat:\d+\.\d+\.\d+`),
-				replacement: fmt.Sprintf("docker.elastic.co/beats/auditbeat:%s", newVersion),
+				pattern:     regexp.MustCompile(`docker\.elastic\.co/beats/auditbeat(-[a-z]+)?:\d+\.\d+\.\d+`),
+				replacement: fmt.Sprintf("docker.elastic.co/beats/auditbeat$1:%s", newVersion),
 			},
 		},
 		"README.md": {
