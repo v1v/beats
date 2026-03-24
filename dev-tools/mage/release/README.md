@@ -187,6 +187,7 @@ Creates a new major or minor release (e.g., 9.0.0, 9.3.0).
 ```bash
 # Test first with DRY_RUN
 export CURRENT_RELEASE="9.3.0"
+export LATEST_RELEASE="9.2.5"  # Required for .0 releases (auto-inference will fail)
 export GITHUB_TOKEN="ghp_your_token"
 export DRY_RUN=true
 
@@ -575,7 +576,8 @@ git commit -m "WIP"
 
 **Solution:**
 ```bash
-export CURRENT_RELEASE="9.3.0"
+export CURRENT_RELEASE="9.3.4"
+# LATEST_RELEASE, NEXT_RELEASE, and RELEASE_BRANCH will be auto-inferred
 ```
 
 ### Error: "GITHUB_TOKEN is required when not in dry-run mode"
@@ -589,6 +591,19 @@ export GITHUB_TOKEN="ghp_your_token"
 
 # Option 2: Use DRY_RUN
 export DRY_RUN=true
+```
+
+### Error: "cannot infer latest release from patch version 0"
+
+**Cause:** Trying to use auto-inference for a .0 release (e.g., 9.3.0).
+
+**Solution:**
+```bash
+# For the first release in a minor version, explicitly set LATEST_RELEASE
+# or leave it unset to skip test environment updates
+export CURRENT_RELEASE="9.3.0"
+export LATEST_RELEASE="9.2.5"  # Previous minor's last patch
+# Or skip test env updates by not setting LATEST_RELEASE
 ```
 
 ### Error: "minor releases for version X.x are deprecated and blocked"
