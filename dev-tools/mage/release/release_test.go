@@ -198,7 +198,7 @@ func TestUpdateTestEnv(t *testing.T) {
 	// Test updating test env
 	// When releasing 9.3.4, we want test envs to use 9.3.3 (latest stable)
 	// UpdateTestEnv(latestVersion, currentVersion)
-	// - Matches all 9.3.x (from currentVersion)
+	// - Matches all 9.x.x versions (based on major version from currentVersion)
 	// - Replaces with latestVersion (9.3.3)
 	err = UpdateTestEnv("9.3.3", "9.3.4")
 	if err != nil {
@@ -324,11 +324,11 @@ func TestUpdateTestEnvNoChanges(t *testing.T) {
 		t.Fatalf("Failed to create test env dir: %v", err)
 	}
 
-	// Create latest.yml with a version from a different minor line
+	// Create latest.yml with a version from a different major line
 	latestYml := filepath.Join(testEnvDir, "latest.yml")
 	latestContent := `services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.5
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.5
 `
 	err = os.WriteFile(latestYml, []byte(latestContent), 0644)
 	if err != nil {
@@ -341,17 +341,17 @@ func TestUpdateTestEnvNoChanges(t *testing.T) {
 	os.Chdir(tmpDir)
 
 	// Test updating test env when releasing 9.3.4
-	// UpdateTestEnv("9.3.3", "9.3.4") looks for 9.3.x versions to update to 9.3.3
-	// File has 9.2.5, so pattern 9.3.\d+ won't match
+	// UpdateTestEnv("9.3.3", "9.3.4") looks for 9.x.x versions to update to 9.3.3
+	// File has 8.15.5 (different major version), so pattern 9.\d+.\d+ won't match
 	// This should complete without error even though no changes are made
 	err = UpdateTestEnv("9.3.3", "9.3.4")
 	if err != nil {
 		t.Fatalf("UpdateTestEnv should not fail when no matches found: %v", err)
 	}
 
-	// Verify file was NOT updated (version should still be 9.2.5)
+	// Verify file was NOT updated (version should still be 8.15.5)
 	content, _ := os.ReadFile(latestYml)
-	if !strings.Contains(string(content), "docker.elastic.co/elasticsearch/elasticsearch:9.2.5") {
-		t.Errorf("Test env file should not be updated when version doesn't match. Got:\n%s", string(content))
+	if !strings.Contains(string(content), "docker.elastic.co/elasticsearch/elasticsearch:8.15.5") {
+		t.Errorf("Test env file should not be updated when version doesn't match major. Got:\n%s", string(content))
 	}
 }

@@ -116,6 +116,7 @@ func UpdateDocs(newVersion string) error {
 }
 
 // UpdateTestEnv updates docker-compose.yml files with new version
+// Matches based on major version only (e.g., all 9.x.x versions)
 func UpdateTestEnv(latestVersion, currentVersion string) error {
 	files := []string{
 		"testing/environments/docker/elasticsearch_kerberos/Dockerfile",
@@ -125,23 +126,19 @@ func UpdateTestEnv(latestVersion, currentVersion string) error {
 		"metricbeat/docker-compose.yml",
 	}
 
-	// Extract major.minor from currentVersion (e.g., "9.3.4" -> "9.3")
-	// This determines which release line we're updating
+	// Extract major version from currentVersion (e.g., "9.3.4" -> "9")
 	parts := strings.Split(currentVersion, ".")
-	if len(parts) < 2 {
+	if len(parts) < 1 {
 		return fmt.Errorf("invalid version format: %s", currentVersion)
 	}
-	majorMinor := parts[0] + "\\." + parts[1]
+	major := parts[0]
 
-	// Pattern 1: docker.elastic.co/...:X.Y.<any-patch>
-	// This matches any patch version in the same major.minor line
-	// and replaces it with latestVersion (the previous stable release)
-	pattern1 := regexp.MustCompile(fmt.Sprintf(`docker\.elastic\.co/([^:]+):%s\.\d+`, majorMinor))
+	// Pattern 1: docker.elastic.co/...:9.X.Y (matches all 9.x.x versions)
+	pattern1 := regexp.MustCompile(fmt.Sprintf(`docker\.elastic\.co/([^:]+):%s\.\d+\.\d+`, major))
 	replacement1 := fmt.Sprintf("docker.elastic.co/$1:%s", latestVersion)
 
-	// Pattern 2: ${VAR_NAME:-X.Y.Z}
-	// This matches environment variable defaults like ${ELASTICSEARCH_VERSION:-9.3.1}
-	pattern2 := regexp.MustCompile(fmt.Sprintf(`(\$\{[^:]+:-)%s\.\d+(\})`, majorMinor))
+	// Pattern 2: ${VAR_NAME:-9.X.Y} (matches environment variable defaults)
+	pattern2 := regexp.MustCompile(fmt.Sprintf(`(\$\{[^:]+:-)%s\.\d+\.\d+(\})`, major))
 	replacement2 := fmt.Sprintf("${1}%s${2}", latestVersion)
 
 	for _, filePath := range files {
