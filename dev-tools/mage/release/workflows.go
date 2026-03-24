@@ -228,6 +228,9 @@ This PR updates test environment configurations for the %s patch release.
 
 	// PR 1: Docs and version
 	fmt.Println("\n--- Creating PR 1: Docs and Version ---")
+	if err := repo.CheckoutBranch(cfg.BaseBranch); err != nil {
+		return err
+	}
 	if err := repo.CreateBranch(prConfigs[0].BranchName); err != nil {
 		return err
 	}
