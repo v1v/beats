@@ -62,9 +62,11 @@ func LoadConfigFromEnv() (*ReleaseConfig, error) {
 	}
 
 	// Infer LatestRelease, NextRelease, and ReleaseBranch from CurrentRelease
+	// LatestRelease is optional - it will be empty for .0 releases (major/minor)
 	latestRelease, err := inferLatestRelease(currentRelease)
 	if err != nil {
-		return nil, fmt.Errorf("failed to infer LatestRelease: %w", err)
+		// For .0 releases (major/minor), LatestRelease can't be inferred - that's OK
+		latestRelease = ""
 	}
 
 	nextRelease, err := inferNextRelease(currentRelease)

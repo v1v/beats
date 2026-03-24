@@ -33,7 +33,7 @@ The following values are automatically inferred from `CURRENT_RELEASE` and can b
 
 - **LATEST_RELEASE**: Calculated as `CURRENT_RELEASE` with patch version decremented by 1
   - Example: `9.3.4` → `9.3.3`
-  - Note: Fails if patch version is 0 (use explicit env var for first patch release)
+  - Note: Cannot be inferred for .0 releases (e.g., `9.3.0`) - will be empty (optional for major/minor releases)
 
 - **NEXT_RELEASE**: Calculated as `CURRENT_RELEASE` with patch version incremented by 1
   - Example: `9.3.4` → `9.3.5`
